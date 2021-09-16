@@ -40,7 +40,9 @@ This BCP assumes the use of validating resolvers, which should already be a BCP 
 
 MITM and poisoning attacks should only be effective/possible against unsigned domains.
 
-However, until all domains are signed, this guidance can limit the attack surface of unsigned domains.
+However, until all domains are signed, this guidance is relevant, in that it can limit the attack surface of unsigned domains.
+
+This guidance should be combined with [@I-D.draft-dickson-dnsop-ds-hack].
 
 {mainmatter}
 {{README.md}}
