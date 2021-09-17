@@ -6,7 +6,7 @@ category = "info"
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-dickson-dnsop-glueless-00"
+value = "draft-dickson-dnsop-glueless-01"
 stream = "IETF"
 status = "informational"
 
