@@ -65,32 +65,32 @@ The following practice is RECOMMENDED (for signed name server name zones, i.e. l
 
 Example:
 
-    // Entries in the example TLD
+    Entries in the example TLD
     //
     // Same unsigned zone uses the same name servers
     // However, the name server is in its own glueless zone
     unsigned-zone.example NS ns1.nameserver-signed-zone.example
     unsigned-zone.example NS ns2.nameserver-signed-zone.example
     //
-    nameserver-signed-zone.example NS ns1.separate-signed-zone.example
-    nameserver-signed-zone.example NS ns2.separate-signed-zone.example
+    nameserver-signed-zone.example NS ns1.separate-zone.example
+    nameserver-signed-zone.example NS ns2.separate-zone.example
     nameserver-signed-zone.example DS (DS record data)
     //
-    separate-signed-zone.example NS special-ns1.separate-signed-zone.example
-    separate-signed-zone.example NS special-ns2.separate-signed-zone.example
-    separate-signed-zone.example DS (DS record data)
+    separate-zone.example NS special-ns1.separate-zone.example
+    separate-zone.example NS special-ns2.separate-zone.example
+    separate-zone.example DS (DS record data)
     // glue for special-ns1 and -2
-    // special-ns1 and -2 are used only for/by separate-signed-zone
-    special-ns1.separate-signed-zone.example A (IP address)
-    special-ns1.separate-signed-zone.example AAAA (IP address)
-    special-ns2.separate-signed-zone.example A (IP address)
-    special-ns2.separate-signed-zone.example AAAA (IP address)
+    // special-ns1 and -2 are used only for/by separate-zone
+    special-ns1.separate-zone.example A (IP address)
+    special-ns1.separate-zone.example AAAA (IP address)
+    special-ns2.separate-zone.example A (IP address)
+    special-ns2.separate-zone.example AAAA (IP address)
 
     Zone file for nameserver-signed-zone:
     nameserver-signed-zone.example SOA (soa record data)
     // glueless NS are used
-    nameserver-signed-zone.example NS ns1.separate-signed-zone.example
-    nameserver-signed-zone.example NS ns2.separate-signed-zone.example
+    nameserver-signed-zone.example NS ns1.separate-zone.example
+    nameserver-signed-zone.example NS ns2.separate-zone.example
     // actual glueless address records for "real" name server names
     ns1.nameserver-signed-zone.example A (IP address)
     ns1.nameserver-signed-zone.example AAAA (IP address)
@@ -98,21 +98,22 @@ Example:
     ns2.nameserver-signed-zone.example AAAA (IP address)
     // etc etc etc
 
-    Zone file for separate-signed-zone:
-    separate-signed-zone.example SOA (soa record data)
-    // This is the only non-glueless NS in use, matches glue record in parent
-    separate-signed-zone.example NS special-ns1.separate-signed-zone.example
-    separate-signed-zone.example NS special-ns2.separate-signed-zone.example
-    special-ns1.separate-signed-zone.example A (IP address)
-    special-ns1.separate-signed-zone.example AAAA (IP address)
-    special-ns2.separate-signed-zone.example A (IP address)
-    special-ns2.separate-signed-zone.example AAAA (IP address)
-    // actual glueless address records for "real" name server name
-    // "real" name server name is only used by nameserver-signed-zone
-    ns1.separate-signed-zone.example A (IP address)
-    ns1.separate-signed-zone.example AAAA (IP address)
-    ns2.separate-signed-zone.example A (IP address)
-    ns2.separate-signed-zone.example AAAA (IP address)
+    Zone file for separate-zone:
+    separate-zone.example SOA (soa record data)
+    // This is the only non-glueless NS in use
+    // NB: matches glue in parent
+    separate-zone.example NS special-ns1.separate-zone.example
+    separate-zone.example NS special-ns2.separate-zone.example
+    special-ns1.separate-zone.example A (IP address)
+    special-ns1.separate-zone.example AAAA (IP address)
+    special-ns2.separate-zone.example A (IP address)
+    special-ns2.separate-zone.example AAAA (IP address)
+    // actual address records for "real" name server name
+    // (only used by nameserver-signed-zone)
+    ns1.separate-zone.example A (IP address)
+    ns1.separate-zone.example AAAA (IP address)
+    ns2.separate-zone.example A (IP address)
+    ns2.separate-zone.example AAAA (IP address)
 
 
 

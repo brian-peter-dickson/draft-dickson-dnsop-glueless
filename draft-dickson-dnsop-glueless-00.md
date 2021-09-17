@@ -2,13 +2,13 @@
 title = "Operating a Glueless DNS Authority Server"
 abbrev = "Glueless DNS"
 docName = "draft-dickson-dnsop-glueless"
-category = "BCP"
+category = "info"
 
 [seriesInfo]
 name = "Internet-Draft"
 value = "draft-dickson-dnsop-glueless-00"
 stream = "IETF"
-status = "BCP"
+status = "informational"
 
 
 ipr = "trust200902"
@@ -42,7 +42,7 @@ MITM and poisoning attacks should only be effective/possible against unsigned do
 
 However, until all domains are signed, this guidance is relevant, in that it can limit the attack surface of unsigned domains.
 
-This guidance should be combined with [@I-D.draft-dickson-dnsop-ds-hack].
+This guidance should be combined with [@?I-D.dickson-dnsop-ds-hack]
 
 {mainmatter}
 {{README.md}}
