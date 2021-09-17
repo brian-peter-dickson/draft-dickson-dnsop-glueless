@@ -16,9 +16,21 @@ Use of DNSSEC requires upgrades to software for authorative servers, resolvers, 
 
 When a given zone is unsigned, those protections to the zone contents are not available.
 
-FIXME
+Any unsigned zone is trivially able to be altered by an on-path attacker.
 
-For example, querying for the NS records for "example.com", at the name servers for the "com" TLD, where the published com zone has "example.com NS ns1.example.net", is not protected against MITM attacks, even if the domain "example.net" (the domain serving records for "ns1.example.net") is DNSSEC signed.
+An off-path attacker is limited to use of cache poisoning attacks.
+
+However, some class of cache poisoning attacks target unsigned delegation data. These records consist of the necessary NS records, and when necessary, "glue" records for IP address corresponding to these NS records.
+
+The impact to successful cache poisoning of delegation records is that the attacker may substitute their own name servers for the legitimate name server. In other words, the attacker is able to promote itself to being effectively on-path, and trivially modify unsigned domain results.
+
+# Proposed Solutions
+
+There are two delegation record types that require protection against off-path attackers, for unsigned domains.
+
+For protecting NS records used in delegations, there is a new proposal for use of a new DS record. See [@?I-D.dickson-dnsop-ds-hack] for details.
+
+The present draft addresses the "glue" records, by recommending methods to make them unnecessary. If there is no delegation glue data, an attacker cannot poison that data. The resolver cache would contain only authoritative data, which cannot be pre-empted by such poisoning attacks. 
 
 # Recommendations
 
