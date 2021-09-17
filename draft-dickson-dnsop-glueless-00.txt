@@ -72,13 +72,14 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Conventions and Definitions . . . . . . . . . . . . . . . . .   2
    3.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   2
-   4.  Recommendations . . . . . . . . . . . . . . . . . . . . . . .   3
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   5
-   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   5
-   7.  Normative References  . . . . . . . . . . . . . . . . . . . .   5
-   8.  Informative References  . . . . . . . . . . . . . . . . . . .   5
-   Appendix A.  Acknowledgments  . . . . . . . . . . . . . . . . . .   6
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   6
+   4.  Proposed Solutions  . . . . . . . . . . . . . . . . . . . . .   3
+   5.  Recommendations . . . . . . . . . . . . . . . . . . . . . . .   3
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+   8.  Normative References  . . . . . . . . . . . . . . . . . . . .   6
+   9.  Informative References  . . . . . . . . . . . . . . . . . . .   6
+   Appendix A.  Acknowledgments  . . . . . . . . . . . . . . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
 
 1.  Introduction
 
@@ -104,7 +105,6 @@ Table of Contents
    When a given zone is unsigned, those protections to the zone contents
    are not available.
 
-   FIXME
 
 
 
@@ -114,13 +114,38 @@ Dickson                   Expires 20 March 2022                 [Page 2]
 Internet-Draft                Glueless DNS                September 2021
 
 
-   For example, querying for the NS records for "example.com", at the
-   name servers for the "com" TLD, where the published com zone has
-   "example.com NS ns1.example.net", is not protected against MITM
-   attacks, even if the domain "example.net" (the domain serving records
-   for "ns1.example.net") is DNSSEC signed.
+   Any unsigned zone is trivially able to be altered by an on-path
+   attacker.
 
-4.  Recommendations
+   An off-path attacker is limited to use of cache poisoning attacks.
+
+   However, some class of cache poisoning attacks target unsigned
+   delegation data.  These records consist of the necessary NS records,
+   and when necessary, "glue" records for IP address corresponding to
+   these NS records.
+
+   The impact to successful cache poisoning of delegation records is
+   that the attacker may substitute their own name servers for the
+   legitimate name server.  In other words, the attacker is able to
+   promote itself to being effectively on-path, and trivially modify
+   unsigned domain results.
+
+4.  Proposed Solutions
+
+   There are two delegation record types that require protection against
+   off-path attackers, for unsigned domains.
+
+   For protecting NS records used in delegations, there is a new
+   proposal for use of a new DS record.  See [I-D.dickson-dnsop-ds-hack]
+   for details.
+
+   The present draft addresses the "glue" records, by recommending
+   methods to make them unnecessary.  If there is no delegation glue
+   data, an attacker cannot poison that data.  The resolver cache would
+   contain only authoritative data, which cannot be pre-empted by such
+   poisoning attacks.
+
+5.  Recommendations
 
    The following practice is RECOMMENDED for unsigned zones:
 
@@ -129,6 +154,21 @@ Internet-Draft                Glueless DNS                September 2021
    *  Use out-of-zone names for the name servers for unsigned zones
 
    Example:
+
+
+
+
+
+
+
+
+
+
+
+Dickson                   Expires 20 March 2022                 [Page 3]
+
+Internet-Draft                Glueless DNS                September 2021
+
 
    Do NOT do the following (delegations requiring glue):
    unsigned-zone.example NS ns1.unsigned-zone.example
@@ -162,14 +202,6 @@ Internet-Draft                Glueless DNS                September 2021
    *  Consider use of another zone for the dedicated name server names,
       to make the name server name zone itself fully glueless
 
-
-
-
-Dickson                   Expires 20 March 2022                 [Page 3]
-
-Internet-Draft                Glueless DNS                September 2021
-
-
    *  For this additional zone, also consider using a different name
       server _name_ for its delegation's exclusive use
 
@@ -185,6 +217,14 @@ Internet-Draft                Glueless DNS                September 2021
 
    *  Additional lookups are required on the initial reference to any NS
       in the main glueless zone
+
+
+
+
+Dickson                   Expires 20 March 2022                 [Page 4]
+
+Internet-Draft                Glueless DNS                September 2021
+
 
    *  Subsequent (new) queries for the IP addresses of glueless name
       servers only require single queries
@@ -218,14 +258,6 @@ Internet-Draft                Glueless DNS                September 2021
    nameserver-signed-zone.example NS ns1.separate-zone.example
    nameserver-signed-zone.example NS ns2.separate-zone.example
    // actual glueless address records for "real" name server names
-
-
-
-Dickson                   Expires 20 March 2022                 [Page 4]
-
-Internet-Draft                Glueless DNS                September 2021
-
-
    ns1.nameserver-signed-zone.example A (IP address)
    ns1.nameserver-signed-zone.example AAAA (IP address)
    ns2.nameserver-signed-zone.example A (IP address)
@@ -242,6 +274,14 @@ Internet-Draft                Glueless DNS                September 2021
    special-ns1.separate-zone.example AAAA (IP address)
    special-ns2.separate-zone.example A (IP address)
    special-ns2.separate-zone.example AAAA (IP address)
+
+
+
+Dickson                   Expires 20 March 2022                 [Page 5]
+
+Internet-Draft                Glueless DNS                September 2021
+
+
    // actual address records for "real" name server name
    // (only used by nameserver-signed-zone)
    ns1.separate-zone.example A (IP address)
@@ -249,7 +289,7 @@ Internet-Draft                Glueless DNS                September 2021
    ns2.separate-zone.example A (IP address)
    ns2.separate-zone.example AAAA (IP address)
 
-5.  Security Considerations
+6.  Security Considerations
 
    This guidance is not a substitute for use of DNSSEC for DNS domains.
 
@@ -263,24 +303,17 @@ Internet-Draft                Glueless DNS                September 2021
    MITM attacks (i.e.  DNS over TLS from resolver to authoritative
    server, aka ADoT), but this is still less secure than use of DNSSEC.
 
-6.  IANA Considerations
+7.  IANA Considerations
 
    This document has no IANA actions.
 
-7.  Normative References
+8.  Normative References
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
-8.  Informative References
-
-
-
-Dickson                   Expires 20 March 2022                 [Page 5]
-
-Internet-Draft                Glueless DNS                September 2021
-
+9.  Informative References
 
    [I-D.dickson-dnsop-ds-hack]
               Dickson, B., "DS Algorithms for Securing NS and Glue",
@@ -293,6 +326,17 @@ Internet-Draft                Glueless DNS                September 2021
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/info/rfc2119>.
+
+
+
+
+
+
+
+Dickson                   Expires 20 March 2022                 [Page 6]
+
+Internet-Draft                Glueless DNS                September 2021
+
 
 Appendix A.  Acknowledgments
 
@@ -333,4 +377,16 @@ Author's Address
 
 
 
-Dickson                   Expires 20 March 2022                 [Page 6]
+
+
+
+
+
+
+
+
+
+
+
+
+Dickson                   Expires 20 March 2022                 [Page 7]
