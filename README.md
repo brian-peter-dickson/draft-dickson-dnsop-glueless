@@ -28,7 +28,7 @@ The impact to successful cache poisoning of delegation records is that the attac
 
 There are two delegation record types that require protection against off-path attackers, for unsigned domains.
 
-For protecting NS records used in delegations, there is a new proposal for use of a new DS record. See [@?I-D.dickson-dnsop-ds-hack] for details.
+For protecting NS records used in delegations, there is a new proposal for use of a new DS record. See [@I-D.dickson-dnsop-ds-hack] for details.
 
 The present draft addresses the "glue" records, by recommending methods to make them unnecessary. If there is no delegation glue data, an attacker cannot poison that data. The resolver cache would contain only authoritative data, which cannot be pre-empted by such poisoning attacks. 
 
