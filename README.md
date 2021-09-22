@@ -26,18 +26,30 @@ The impact to successful cache poisoning of delegation records is that the attac
 
 # Proposed Solutions
 
+This work does not propose any protocol changes. It provides guidance on strategies and techniques for name server naming.
+
 There are two kinds of delegation records that require protection against off-path attackers, for unsigned domains.
 
 For protecting NS records used in delegations, there is a new proposal for use of a new DS record. See [@I-D.dickson-dnsop-ds-hack] for details.
 
-The present draft addresses the "glue" records, by recommending methods to make them unnecessary. If there is no delegation glue data, an attacker cannot poison that data. The resolver cache would contain only authoritative data, which cannot be pre-empted by such poisoning attacks. 
+The present draft addresses the "glue" records, by recommending methods to make them mostly unnecessary. If there is no delegation glue data, an attacker cannot poison that data. The resolver cache would contain only authoritative address records associated with NS names. Authoritative data cannot be pre-empted by such poisoning attacks, since those are only able to replace less trusted glue records. 
+
+Additional recommendations are made to reduce the chances for errors caused by DNS operators when changing delegation records, by avoiding re-use of name server names which require glue address records.
+
+# Terminology:
+The following terms are used to disambiguate zones and server names:
+
+* Registered domain - end-user (registrant) domain
+    * In the parent zone, the registered domain is the left-hand side of the NS record
+* Registered domain name server - the name of the name server serving the registered domain
+    * In the parent zone, the registered domain name server is the right-hand side of the NS record
 
 # Recommendations
 
 The following practice is RECOMMENDED for unsigned zones:
 
-* Do not use in-bailiwick name server names for unsigned zones.
-* Use out-of-zone names for the name servers of unsigned zones.
+* Do not use in-bailiwick registered domain name servers for unsigned zones.
+* Instead, use out-of-zone names for the registered domain name servers of unsigned zones.
 
 Example:
 
@@ -45,34 +57,43 @@ Example:
     unsigned-zone.example NS ns1.unsigned-zone.example
     unsigned-zone.example NS ns2.unsigned-zone.example
     // glue
+    // "strictly necessary glue"
+    // always required for successful resolution
     ns1.unsigned-zone.example A (IP address)
     ns1.unsigned-zone.example AAAA (IP address)
     ns2.unsigned-zone.example A (IP address)
     ns2.unsigned-zone.example AAAA (IP address)
 
     Instead, do the following (glueless delegations):
+    // This is the minimum "glueless" set-up
+    // NS target name is not a "registered" host
+    // NS target is not used for glue for any domains
     unsigned-zone.example NS ns1.nameserver-signed-zone.example
     unsigned-zone.example NS ns2.nameserver-signed-zone.example
     //
     // Delegation to signed zone containing name server names
+    // (This zone serves the address records of name servers
+    //  such as the glueless example above)
     nameserver-signed-zone.example NS ns1.nameserver-signed-zone.example
     nameserver-signed-zone.example NS ns2.nameserver-signed-zone.example
     nameserver-signed-zone.example DS (DS record data)
+    // However, this zone needs to be resolvable, and needs glue
     // glue records for this delegation
     ns1.nameserver-signed-zone.example A (IP address)
     ns1.nameserver-signed-zone.example A (IP address)
     ns2.nameserver-signed-zone.example AAAA (IP address)
     ns2.nameserver-signed-zone.example AAAA (IP address)
 
-The following practice is RECOMMENDED (for signed name server name zones):
+The following practice is RECOMMENDED:
 
-* For name server name zones (zones containing data for name servers), use dedicated name server names for the zone itself
-* Consider use of another zone for the dedicated name server names, to make the name server name zone itself fully glueless
-* For this additional zone, also consider using a different name server _name_ for its delegation's exclusive use 
-* Decoupling the respective NS names ensures that changes and updates to the zone that uses glue don't affect any other zones
+* For any name server domain (domain containing addresses and related data for name servers used by registered domains), use distinct dedicated name servers for the domain itself
+    * I.e. avoid sharing name servers between the name server domain and any registered domains
+* Consider making the name server domain itself fully glueless, with an out-of-zone name server (using a tertiary domain)
+* For this tertiary domain, also consider using separating the in-bailiwick name servers, from the names used for serving the name server domain
+* Decoupling the respective NS names ensures that changes and updates to the domain that uses glue don't affect any other domains
 * Depending on parent zone policy (e.g. TLD database policy), renaming or renumbering name servers may affect delegations using them (NS entries)
-* A single zone with non-reused NS names guarantees side effects of this sort are not possible
-* Additional lookups are required on the initial reference to any NS in the main glueless zone
+* A single domain with non-reused NS names guarantees side effects of this sort are not possible
+* Additional lookups are required on the initial reference to get the addresses of name servers for the main glueless domain
 * Subsequent (new) queries for the IP addresses of glueless name servers only require single queries
 
 Example:
