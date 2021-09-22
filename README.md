@@ -14,9 +14,9 @@ when, and only when, they appear in all capitals, as shown here.
 
 Use of DNSSEC requires upgrades to software for authorative servers, resolvers, and optionally clients, in order to benefit from these protections. It also requires that DNS operators actually sign their zones and secure the corresponding delegations at the parent.
 
-When a given zone is unsigned or not securely delegated, those protections to the zone contents are not available.
+When a given domain is unsigned or not securely delegated, those protections to the zone contents are not available.
 
-Any such insecure zone is trivially able to be altered by an on-path attacker.
+Any such insecure domain is trivially able to be altered by an on-path attacker.
 
 An off-path attacker is limited to use of cache poisoning attacks.
 
@@ -37,7 +37,7 @@ The present draft addresses the "glue" records, by recommending methods to make 
 Additional recommendations are made to reduce the chances for errors caused by DNS operators when changing delegation records, by avoiding re-use of name server names which require glue address records.
 
 # Terminology:
-The following terms are used to disambiguate zones and server names:
+The following terms are used to disambiguate domains and server names:
 
 * Registered domain - end-user (registrant) domain
     * In the parent zone, the registered domain is the left-hand side of the NS record
@@ -46,43 +46,47 @@ The following terms are used to disambiguate zones and server names:
 
 # Recommendations
 
-The following practice is RECOMMENDED for unsigned zones:
+The following practice is RECOMMENDED for unsigned domains:
 
-* Do not use in-bailiwick registered domain name servers for unsigned zones.
-* Instead, use out-of-zone names for the registered domain name servers of unsigned zones.
+* Do not use in-bailiwick registered domain name servers for unsigned domains.
+* Instead, use out-of-zone names for the registered domain name servers of unsigned domains.
 
 Example:
 
     Do NOT do the following (delegations requiring glue):
-    unsigned-zone.example NS ns1.unsigned-zone.example
-    unsigned-zone.example NS ns2.unsigned-zone.example
+    $ORIGIN example.
+    // Records in example TLD, with relative names
+    unsigned-domain NS ns1.unsigned-domain
+    unsigned-domain NS ns2.unsigned-domain
     // glue
     // "strictly necessary glue"
     // always required for successful resolution
-    ns1.unsigned-zone.example A (IP address)
-    ns1.unsigned-zone.example AAAA (IP address)
-    ns2.unsigned-zone.example A (IP address)
-    ns2.unsigned-zone.example AAAA (IP address)
+    ns1.unsigned-domain A (IP address)
+    ns1.unsigned-domain AAAA (IP address)
+    ns2.unsigned-domain A (IP address)
+    ns2.unsigned-domain AAAA (IP address)
 
     Instead, do the following (glueless delegations):
+    $ORIGIN example.
+    // Records in example TLD, with relative names
     // This is the minimum "glueless" set-up
     // NS target name is not a "registered" host
     // NS target is not used for glue for any domains
-    unsigned-zone.example NS ns1.nameserver-signed-zone.example
-    unsigned-zone.example NS ns2.nameserver-signed-zone.example
+    unsigned-domain NS ns1.nameserver-signed-domain
+    unsigned-domain NS ns2.nameserver-signed-domain
     //
-    // Delegation to signed zone containing name server names
-    // (This zone serves the address records of name servers
+    // Delegation to signed domain containing name server names
+    // (This domain serves the address records of name servers
     //  such as the glueless example above)
-    nameserver-signed-zone.example NS ns1.nameserver-signed-zone.example
-    nameserver-signed-zone.example NS ns2.nameserver-signed-zone.example
-    nameserver-signed-zone.example DS (DS record data)
-    // However, this zone needs to be resolvable, and needs glue
+    nameserver-signed-domain NS ns1.nameserver-signed-domain
+    nameserver-signed-domain NS ns2.nameserver-signed-domain
+    nameserver-signed-domain DS (DS record data)
+    // However, this domain needs to be resolvable, and needs glue
     // glue records for this delegation
-    ns1.nameserver-signed-zone.example A (IP address)
-    ns1.nameserver-signed-zone.example A (IP address)
-    ns2.nameserver-signed-zone.example AAAA (IP address)
-    ns2.nameserver-signed-zone.example AAAA (IP address)
+    ns1.nameserver-signed-domain A (IP address)
+    ns1.nameserver-signed-domain A (IP address)
+    ns2.nameserver-signed-domain AAAA (IP address)
+    ns2.nameserver-signed-domain AAAA (IP address)
 
 The following practice is RECOMMENDED:
 
@@ -90,75 +94,86 @@ The following practice is RECOMMENDED:
     * I.e. avoid sharing name servers between the name server domain and any registered domains
 * Consider making the name server domain itself fully glueless, with an out-of-zone name server (using a tertiary domain)
 * For this tertiary domain, also consider using separating the in-bailiwick name servers, from the names used for serving the name server domain
-* Decoupling the respective NS names ensures that changes and updates to the domain that uses glue don't affect any other domains
-* Depending on parent zone policy (e.g. TLD database policy), renaming or renumbering name servers may affect delegations using them (NS entries)
-* A single domain with non-reused NS names guarantees side effects of this sort are not possible
-* Additional lookups are required on the initial reference to get the addresses of name servers for the main glueless domain
-* Subsequent (new) queries for the IP addresses of glueless name servers only require single queries
+    * Limiting the in-bailiwick NS names ensures that changes and updates to the tertiary domain don't affect any other domains
+    * Depending on parent zone policy (e.g. TLD database policy), renaming or renumbering name servers may affect delegations using them (NS entries)
+    * A single domain with non-reused NS names guarantees side effects of this sort are not possible
+* Overhead of tertiary domain and not re-using (or sharing) name server names in the tertiary domain:
+    * Additional lookups are required on the initial reference to get the addresses of name servers for the main glueless domain
+    * Subsequent (new) queries for the IP addresses of glueless name servers only require single queries
 
 Example:
 
     Entries in the example TLD
+    $ORIGIN example.
     //
-    // Same unsigned zone uses the same name servers
-    // However, the name server is in its own glueless zone
-    unsigned-zone.example NS ns1.nameserver-signed-zone.example
-    unsigned-zone.example NS ns2.nameserver-signed-zone.example
+    // Same unsigned domain uses the same name servers
+    // However, the name server is in its own glueless domain
+    unsigned-registrant-domain NS ns1.signed-nameserver-domain
+    unsigned-registrant-domain NS ns2.signed-nameserver-domain
     //
-    nameserver-signed-zone.example NS ns1.separate-zone.example
-    nameserver-signed-zone.example NS ns2.separate-zone.example
-    nameserver-signed-zone.example DS (DS record data)
+    signed-nameserver-domain NS ns1.tertiary-domain
+    signed-nameserver-domain NS ns2.tertiary-domain
+    signed-nameserver-domain DS (DS record data)
     //
-    separate-zone.example NS special-ns1.separate-zone.example
-    separate-zone.example NS special-ns2.separate-zone.example
-    separate-zone.example DS (DS record data)
+    tertiary-domain NS special-ns1.tertiary-domain
+    tertiary-domain NS special-ns2.tertiary-domain
+    tertiary-domain DS (DS record data)
     // glue for special-ns1 and -2
-    // special-ns1 and -2 are used only for/by separate-zone
-    special-ns1.separate-zone.example A (IP address)
-    special-ns1.separate-zone.example AAAA (IP address)
-    special-ns2.separate-zone.example A (IP address)
-    special-ns2.separate-zone.example AAAA (IP address)
+    // special-ns1 and -2 are used only for/by tertiary-domain
+    special-ns1.tertiary-domain A (IP address)
+    special-ns1.tertiary-domain AAAA (IP address)
+    special-ns2.tertiary-domain A (IP address)
+    special-ns2.tertiary-domain AAAA (IP address)
 
-    Zone file for nameserver-signed-zone:
-    nameserver-signed-zone.example SOA (soa record data)
+    Zone file for signed-nameserver-domain.example:
+    $ORIGIN signed-nameserver-domain.example.
+    @ SOA (soa record data)
     // glueless NS are used
-    nameserver-signed-zone.example NS ns1.separate-zone.example
-    nameserver-signed-zone.example NS ns2.separate-zone.example
+    @ NS ns1.tertiary-domain
+    @ NS ns2.tertiary-domain
     // actual glueless address records for "real" name server names
-    ns1.nameserver-signed-zone.example A (IP address)
-    ns1.nameserver-signed-zone.example AAAA (IP address)
-    ns2.nameserver-signed-zone.example A (IP address)
-    ns2.nameserver-signed-zone.example AAAA (IP address)
+    ns1 A (IP address)
+    ns1 AAAA (IP address)
+    ns2 A (IP address)
+    ns2 AAAA (IP address)
     // etc etc etc
 
-    Zone file for separate-zone:
-    separate-zone.example SOA (soa record data)
+    Zone file for tertiary-domain.example:
+    $ORIGIN tertiary-domain.example.
+    @ SOA (soa record data)
+    //
     // This is the only non-glueless NS in use
-    // NB: matches glue in parent
-    separate-zone.example NS special-ns1.separate-zone.example
-    separate-zone.example NS special-ns2.separate-zone.example
-    special-ns1.separate-zone.example A (IP address)
-    special-ns1.separate-zone.example AAAA (IP address)
-    special-ns2.separate-zone.example A (IP address)
-    special-ns2.separate-zone.example AAAA (IP address)
+    // (NB: matches glue address records in the parent)
+    @ NS special-ns1
+    @ NS special-ns2
+    special-ns1 A (IP address)
+    special-ns1 AAAA (IP address)
+    special-ns2 A (IP address)
+    special-ns2 AAAA (IP address)
+    //
     // actual address records for "real" name server name
-    // (only used by nameserver-signed-zone)
-    ns1.separate-zone.example A (IP address)
-    ns1.separate-zone.example AAAA (IP address)
-    ns2.separate-zone.example A (IP address)
-    ns2.separate-zone.example AAAA (IP address)
-
-
+    // (only used by signed-nameserver-domain)
+    // (These match glue records in the parent zone)
+    ns1 A (IP address)
+    ns1 AAAA (IP address)
+    ns2 A (IP address)
+    ns2 AAAA (IP address)
 
 # Security Considerations
-
-This guidance is not a substitute for use of DNSSEC for DNS domains.
 
 This guidance is useful in preventing off-path attackers from poisoning DNS cache entries necessary for delegations.
 
 However, an on-path attacker is still able to manipulate DNS responses sent over UDP or unencrypted TCP.
 
-Use of an encrypted transport is one potential method of preventing MITM attacks (i.e. DNS over TLS from resolver to authoritative server, aka ADoT), but this still does not provide the same security properties as DNSSEC (in particular that the zone contents are authorized by the DNSSEC key holder).
+This guidance is not a substitute for use of DNSSEC for DNS domains.
+The only mechanism that can protect against on-path attackers is cryptographic protection
+DNSSEC signing of domains is both necessary and sufficient to provide data integrity protection.
+
+Use of an encrypted transport is may be effective at preventing MITM attacks (i.e. DNS over TLS from resolver to authoritative server, aka ADoT), but does not provide provable data integrity.
+
+Encrypted transport may be used in combination with DNSSEC signed zones and glueless name server domains.
+
+Encrypted transport does not incrementally improve the data integrity or protection against MITM. DNSSEC is sufficient alone for this purpose. However, encrypted transport does add privacy protection against passive observers.
 
 # IANA Considerations
 
