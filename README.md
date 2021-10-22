@@ -1,6 +1,7 @@
 # Introduction
 
 DNS Security Extensions (DNSSEC) are additions to the DNS protocol which provide data integrity and authenticity protections, but do not provide privacy.
+Additionally, delegations involve use of unsigned data, including "glue" address records. This document describes ways of avoiding use of "glue".
 
 
 # Conventions and Definitions
